@@ -1,5 +1,4 @@
-from rest_framework import viewsets, generics, status, serializers
-from rest_framework.generics import get_object_or_404
+from rest_framework import viewsets, generics, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -88,34 +87,6 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsOwner]
 
-    # Create your views here.
-
-    def __init__(self, **kwargs):
-        super().__init__(kwargs)
-        self.data = None
-        self.user = None
-
-    def post(self, request, *args, **kwargs):
-        user = self.user
-        course_id = self.data.get('course_id')
-        course = get_object_or_404(Course, id=course_id)
-
-        subscription, created = Subscription.objects.get_or_create(user=user, course=course)
-        print(subscription)
-        if not created:
-            subscription.delete()
-            message = 'Subscription removed'
-        else:
-            message = 'Subscription added'
-
-        return Response({"message": message}, status=status.HTTP_201_CREATED)
-
-    def get(self, request, *args, **kwargs):
-        user = self.user
-        subscriptions = Subscription.objects.filter(user=user)
-        serializer = SubscriptionSerializer(subscriptions, many=True)
-        return Response(serializer.data)
-
 
 class SubscriptionView(APIView):
     permission_classes = [IsAuthenticated]
@@ -125,7 +96,7 @@ class SubscriptionView(APIView):
     def post(self, request, *args, **kwargs):
         user = self.request.user
 
-        name = request.data.get('name')
+        name = request.data.get('course_id')
         course = name.objects.get_object_or_404()
 
         subscription = Subscription.objects.filter(owner=user, course=course, is_active=True)
